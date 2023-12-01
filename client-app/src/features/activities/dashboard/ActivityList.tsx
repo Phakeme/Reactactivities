@@ -1,27 +1,25 @@
 import { Button, Item, Label, Segment } from 'semantic-ui-react'
 import { SyntheticEvent, useState } from 'react'
 
-import { Activity } from '../../../app/models/activity'
+import { observer } from 'mobx-react-lite'
+import { useStore } from '../../../app/stores/store'
 
-interface Props {
-  activities: Activity[]
-  selectActivity: (id: string) => void
-  deleteActivity: (id: string) => void
-  submitting: boolean
-}
-
-export const ActivityList = (props: Props) => {
+export const ActivityList = observer(() => {
+  const { activityStore } = useStore()
   const [target, setTarget] = useState('')
 
-  function handleActivityDelete(e: SyntheticEvent<HTMLButtonElement>, id: string) {
+  function handleActivityDelete(
+    e: SyntheticEvent<HTMLButtonElement>,
+    id: string
+  ) {
     setTarget(e.currentTarget.name)
-    props.deleteActivity(id)
+    activityStore.deleteActivity(id)
   }
 
   return (
     <Segment>
       <Item.Group divided>
-        {props.activities.map((item) => (
+        {activityStore.activities.map((item) => (
           <Item key={item.id}>
             <Item.Content>
               <Item.Header as="a">{item.title}</Item.Header>
@@ -34,14 +32,16 @@ export const ActivityList = (props: Props) => {
               </Item.Description>
               <Item.Extra>
                 <Button
-                  onClick={() => props.selectActivity(item.id)}
+                  onClick={() => activityStore.selectActivity(item.id)}
                   floated="right"
                   content="View"
                   color="blue"
                 ></Button>
                 <Button
                   name={item.id}
-                  loading={props.submitting && target === item.id}
+                  loading={
+                    activityStore.isSubmittingActivity && target === item.id
+                  }
                   onClick={(e) => handleActivityDelete(e, item.id)}
                   floated="right"
                   content="Delete"
@@ -55,4 +55,4 @@ export const ActivityList = (props: Props) => {
       </Item.Group>
     </Segment>
   )
-}
+})
