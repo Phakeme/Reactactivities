@@ -1,15 +1,17 @@
 import { Button, Form, Segment } from 'semantic-ui-react'
-import { ChangeEvent, useState } from 'react'
+import { ChangeEvent, useEffect, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
+import { UILoader } from '../../../app/layout/UILoader'
 import { observer } from 'mobx-react-lite'
 import { useStore } from '../../../app/stores/store'
-
-//import { Activity } from "../../../app/models/activity"
+import { v4 as uuid } from 'uuid'
 
 export const ActivityForm = observer(() => {
   const { activityStore } = useStore()
-
-  const initialState = activityStore.selectedActivity ?? {
+  const params = useParams()
+  const navigate = useNavigate()
+  const [activity, setActivity] = useState({
     id: '',
     title: '',
     category: '',
@@ -17,14 +19,26 @@ export const ActivityForm = observer(() => {
     date: '',
     city: '',
     venue: '',
-  }
+  })
 
-  const [activity, setActivity] = useState(initialState)
+  useEffect(() => {
+    if (params.id)
+      activityStore
+        .loadActivity(params.id)
+        .then((activity) => setActivity(activity!))
+  }, [activityStore, params.id])
 
   function handleSubmit() {
-    activity.id
-      ? activityStore.editActivity(activity)
-      : activityStore.createActivity(activity)
+    if (!activity.id) {
+      activity.id = uuid()
+      activityStore
+        .createActivity(activity)
+        .then(() => navigate(`/activities/${activity.id}`))
+    } else {
+      activityStore
+        .editActivity(activity)
+        .then(() => navigate(`/activities/${activity.id}`))
+    }
   }
 
   function handleInputChange(
@@ -32,6 +46,8 @@ export const ActivityForm = observer(() => {
   ) {
     setActivity({ ...activity, [event.target.name]: event.target.value })
   }
+
+  if (activityStore.loadingInitial) return <UILoader />
 
   return (
     <Segment clearing>
@@ -80,12 +96,7 @@ export const ActivityForm = observer(() => {
           type="submit"
           content="Submit"
         />
-        <Button
-          onClick={() => activityStore.closeForm()}
-          floated="right"
-          type="button"
-          content="Cancel"
-        />
+        <Button as={Link} to="/activities" floated="right" type="button" content="Cancel" />
       </Form>
     </Segment>
   )

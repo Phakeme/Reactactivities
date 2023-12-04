@@ -23,7 +23,7 @@ export default class ActivityStore {
       const activities = await agent.Activities.list()
 
       activities.forEach((item) => {
-        item.date = item.date.split('T')[0]
+        this.setActivity(item)
       })
       this.activities = activities
     } catch (error) {
@@ -33,25 +33,37 @@ export default class ActivityStore {
     }
   }
 
+  loadActivity = async (id: string) => {
+    let activity = this.getActivity(id)
+    if (activity) {
+      this.selectedActivity = activity
+      return activity
+    }
+    else {
+      this.setLoadingInitial(true)
+      try {
+        activity = await agent.Activities.details(id)
+        this.setActivity(activity)
+        return activity
+      } catch (error) {
+        console.log(error)
+      } finally {
+        this.setLoadingInitial(false)
+      }
+    }
+  }
+
+  private setActivity = (activity: Activity) => {
+    activity.date = activity.date.split('T')[0]
+    this.selectedActivity = activity
+  }
+
+  private getActivity = (id: string) => {
+    return this.activitiesRegistry.get(id)
+  }
+
   setLoadingInitial = (state: boolean) => {
     this.loadingInitial = state
-  }
-
-  selectActivity = (id: string) => {
-    this.selectedActivity = this.activities.find((item) => item.id === id)
-  }
-
-  cancelActivity = () => {
-    this.selectedActivity = undefined
-  }
-
-  openForm(id?: string) {
-    id ? this.selectActivity(id) : this.cancelActivity()
-    this.editMode = true
-  }
-
-  closeForm() {
-    this.editMode = false
   }
 
   createActivity = async (activity: Activity) => {
@@ -102,12 +114,10 @@ export default class ActivityStore {
       await agent.Activities.delete(id)
       runInAction(() => {
         this.activities = [...this.activities.filter((item) => item.id !== id)]
-        if (this.selectedActivity?.id === id) this.cancelActivity
       })
     } catch (error) {
       console.log(error)
     } finally {
-      console.log('Running')
       runInAction(() => {
         this.isSubmittingActivity = false
       })
