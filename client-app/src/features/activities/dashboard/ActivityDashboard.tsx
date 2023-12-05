@@ -1,3 +1,4 @@
+import { ActivityFilters } from '../details/ActivityFilters'
 import { ActivityList } from './ActivityList'
 import { Grid } from 'semantic-ui-react'
 import { UILoader } from '../../../app/layout/UILoader'
@@ -21,7 +22,7 @@ export const ActivityDashboard = observer(() => {
         <ActivityList />
       </Grid.Column>
       <Grid.Column width="6">
-        <h2>Activity filters</h2>
+        <ActivityFilters />
       </Grid.Column>
     </Grid>
   )
