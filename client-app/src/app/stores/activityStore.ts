@@ -36,7 +36,7 @@ export default class ActivityStore {
   get groupedActivities() {
     return Object.entries(
       this.activities.reduce((activities, activity) => {
-        const date = activity.date
+        const date = activity.date!.toISOString().split("T")[0]
         activities[date] = activities[date]
           ? [...activities[date], activity]
           : [activity]
@@ -65,7 +65,7 @@ export default class ActivityStore {
   }
 
   private setActivity = (activity: Activity) => {
-    activity.date = activity.date.split('T')[0]
+    activity.date = new Date(activity.date!)
     this.selectedActivity = activity
   }
 
