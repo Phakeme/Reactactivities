@@ -1,3 +1,4 @@
+import { User, UserFormValues } from '../models/user'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 import { router, routes } from '../router/Routers'
 
@@ -22,8 +23,11 @@ axios.interceptors.response.use(
     const { data, status, config } = err.response as AxiosResponse
     switch (status) {
       case 400:
-        if(config.method === 'get' && Object.prototype.hasOwnProperty.call(data.errors, "id")){
-          router.navigate("/not-found")
+        if (
+          config.method === 'get' &&
+          Object.prototype.hasOwnProperty.call(data.errors, 'id')
+        ) {
+          router.navigate('/not-found')
         }
         if (data.errors) {
           const modalStateErrors = []
@@ -61,6 +65,12 @@ function responseBody<T>(response: AxiosResponse<T>) {
   return response.data
 }
 
+axios.interceptors.request.use((config) => {
+  const token = store.commonStore.token
+  if (token && config.headers) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
+
 const request = {
   get: <T>(url: string) => axios.get<T>(url).then(responseBody),
   post: <T>(url: string, body: {}) =>
@@ -78,8 +88,16 @@ const Activities = {
   delete: (id: string) => request.del<void>(`/activities/${id}`),
 }
 
+const Account = {
+  current: () => request.get<User>('/account'),
+  login: (user: UserFormValues) => request.post<User>('/account/login', user),
+  register: (user: UserFormValues) =>
+    request.post<User>('/account/register', user),
+}
+
 const agent = {
   Activities,
+  Account,
 }
 
 export default agent

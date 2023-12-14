@@ -14,7 +14,7 @@ export const ActivityDashboard = observer(() => {
       activityStore.loadActivities()
   }, [activityStore])
 
-  if (activityStore.loadingInitial) return <UILoader />
+  if (activityStore.loadingInitial) return <UILoader content='Loading Activities..' />
 
   return (
     <Grid>
